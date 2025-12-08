@@ -1,6 +1,6 @@
 AUTHOR = 'Tung Thanh Tran'
 SITENAME = 'TungT WoodenBench'
-SITEURL = ""
+SITEURL = "https://thanhtung4work.github.io/TungT-WoodenBench"
 
 PATH = "content"
 

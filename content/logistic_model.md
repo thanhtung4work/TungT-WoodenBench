@@ -46,6 +46,7 @@ Eventually, you fix more than you add. (We hope.)
 
 The logistic model captures exactly this pattern.
 By fitting a logistic curve to historical bug-count data, we can estimate:
+
 - Total expected bugs in the project (K)
 - When the bug count will peak (t₀)
 - How fast bugs are accumulating (r)

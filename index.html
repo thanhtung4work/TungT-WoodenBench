@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+        <head>
+                        <meta charset="utf-8" />
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                        <meta name="generator" content="Pelican" />
+                        <title>TungT WoodenBench</title>
+                        <link rel="stylesheet" href="/theme/css/main.css" />
+        </head>
+
+        <body id="index" class="home">
+                <header id="banner" class="body">
+                        <h1><a href="/">TungT WoodenBench</a></h1>
+                        <nav><ul>
+                                                <li><a href="/category/introduction.html">Introduction</a></li>
+                                                <li><a href="/category/machine-learning.html">Machine Learning</a></li>
+                        </ul></nav>
+                </header><!-- /#banner -->
+
+                <aside id="featured" class="body">
+                    <article>
+                        <h1 class="entry-title"><a href="/logistic-modelling.html">Using the Logistic Model in Project Management: Predicting Bug Growth Like a Pro</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2025-12-08T11:00:00+07:00">
+                Published: Mon 08 December 2025
+        </abbr>
+
+                <address class="vcard author">
+                        By                                 <a class="url fn" href="/author/tung-thanh-tran.html">Tung Thanh Tran</a>
+                </address>
+        <p>In <a href="/category/machine-learning.html">Machine Learning</a>.</p>
+<p>tags: <a href="/tag/machine-learning.html">machine learning</a> </p>        
+</footer><!-- /.post-info --><p>When managing a software project, one universal truth always emerges:
+bugs grow faster than coffee consumption during crunch time.</p>
+<p>But what if we could predict this growth instead of being surprised every sprint?
+Enter the <strong>logistic model</strong> - a classic mathematical tool that helps us understand how things grow when they can’t grow forever. Yes, even bugs have limits (usually).</p>
+<h2>What Is the Logistic Model?</h2>
+<p>The logistic model is often used to describe growth that:</p>
+<ol>
+<li>Starts slowly</li>
+<li>Accelerates rapidly</li>
+<li>Then slows down as it approaches a limit</li>
+</ol>
+<p>This limit is known as the carrying capacity - the maximum value the system tends toward. In biology, it might represent the maximum size of a population. In project management, it might represent… <strong>the total number of bugs</strong> your project can produce before teammates stage a revolt.</p>
+<p>The standard logistic function:</p>
+<p>$$ f(t) = { K \over (1 + e^{ -r(t-t_0) }) } $$</p>
+<p>Where:</p>
+<ul>
+<li>K → the upper limit (total possible bugs, or growth ceiling)</li>
+<li>r → growth rate</li>
+<li>t₀ → the midpoint (time when growth is fastest)</li>
+<li>t → time (days, weeks, sprints, etc.)</li>
+</ul>
+<h2>Using Logistic Model to Predict Total Bugs</h2>
+<p>Bug discovery often follows a predictable pattern:</p>
+<ol>
+<li>Early Phase - Low bug count
+You’re still building features, not breaking them (yet).</li>
+<li>Growth Phase - Bug explosion
+New features come in fast. Bugs come in faster. It’s the golden age of QA tickets.</li>
+<li>Stabilization Phase - Leveling off
+Eventually, you fix more than you add. (We hope.)</li>
+</ol>
+<p>The logistic model captures exactly this pattern.
+By fitting a logistic curve to historical bug-count data, we can estimate:
+- Total expected bugs in the project (K)
+- When the bug count will peak (t₀)
+- How fast bugs are accumulating (r)</p>
+<p>This is incredibly useful for planning, resource allocation, and figuring out when your QA team can finally take a vacation.</p>
+<h2>Example: Predicting Final Bug Count</h2>
+<p>Imagine your project’s weekly cumulative bug counts look like this:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">Week 1</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span><span class="w">  </span>
+<span class="nt">Week 2</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12</span><span class="w">  </span>
+<span class="nt">Week 3</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25</span><span class="w">  </span>
+<span class="nt">Week 4</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">47</span><span class="w">  </span>
+<span class="nt">Week 5</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span><span class="w">  </span>
+<span class="nt">Week 6</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">110</span><span class="w">  </span>
+<span class="nt">Week 7</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">130</span><span class="w">  </span>
+<span class="nt">Week 8</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">138</span><span class="w">  </span>
+<span class="nt">Week 9</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">142</span><span class="w">  </span>
+</code></pre></div>
+
+<p>Plotting these points, you’ll notice the curve starts slowing - a perfect fit for a logistic model.</p>
+<p>Fitting the model may reveal:</p>
+<ul>
+<li>K ≈ 150 bugs</li>
+<li>r ≈ 0.8</li>
+<li>t₀ ≈ Week 5</li>
+</ul>
+<p>This suggests you are nearing the “bug saturation point” - the place where new bugs arrive slower than fixes. A magical time.</p>
+<h2>How to Fit a Logistic Model (Quick Guide)</h2>
+<p>You can fit a logistic curve with tools like Python, R, or even Excel if you’re patient.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">curve_fit</span>
+
+<span class="k">def</span> <span class="nf">logistic</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">t0</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">K</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">r</span> <span class="o">*</span> <span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)))</span>
+
+<span class="c1"># Example data</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">])</span>
+<span class="n">bugs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mi">47</span><span class="p">,</span><span class="mi">80</span><span class="p">,</span><span class="mi">110</span><span class="p">,</span><span class="mi">130</span><span class="p">,</span><span class="mi">138</span><span class="p">,</span><span class="mi">142</span><span class="p">])</span>
+
+<span class="n">params</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">logistic</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">bugs</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="p">[</span><span class="mi">150</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="n">K</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">t0</span> <span class="o">=</span> <span class="n">params</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Predicted total bugs (K):&quot;</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
+</code></pre></div>
+
+<p>This gives you an estimate of the total number of bugs the project will accumulate.</p>
+<h2>Logistic Model as a Growth Model in Project Management</h2>
+<p>Beyond bugs, the logistic curve is handy for predicting:</p>
+<ul>
+<li>Feature adoption (internal or external)</li>
+<li>Team size growth</li>
+<li>User growth</li>
+<li>Technical debt accumulation (sadly, also logistic-friendly)</li>
+<li>Infrastructure scaling</li>
+</ul>
+<p>It’s a great model whenever growth starts fast but must eventually slow.</p>
+<h2>Final Thoughts</h2>
+<p>Using the logistic model in project management helps you make predictions that feel less like guesswork and more like insight. Instead of anxiously watching bug numbers rise, you can model them, anticipate them, and plan accordingly.</p>
+<p>And if the predicted “maximum bug count” seems too high… remember:
+it’s not the model’s fault - it’s yours.
+(Just kidding. Probably.)</p>
+<p>There is another model which can be used like logistic model. (<em>ahem it's Gompertz</em>)</p>                    </article>
+                </aside><!-- /#featured -->
+                    <section id="content" class="body">
+                        <h1>Other articles</h1>
+                        <hr />
+                        <ol id="posts-list" class="hfeed">
+
+                <li><article class="hentry">
+                    <header>
+                        <h1><a href="/welcome.html" rel="bookmark"
+                               title="Permalink to Welcome and have a seat">Welcome and have a seat</a></h1>
+                    </header>
+
+                    <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2025-12-08T10:00:00+07:00">
+                Published: Mon 08 December 2025
+        </abbr>
+
+                <address class="vcard author">
+                        By                                 <a class="url fn" href="/author/tung-thanh-tran.html">Tung Thanh Tran</a>
+                </address>
+        <p>In <a href="/category/introduction.html">Introduction</a>.</p>
+<p>tags: <a href="/tag/chit-chat.html">chit-chat</a> </p>        
+</footer><!-- /.post-info -->                        <p>Please have a seat</p>
+                        <a class="readmore" href="/welcome.html">read more</a>
+                    </div><!-- /.entry-content -->
+                </article></li>
+                    </ol><!-- /#posts-list -->
+                    </section><!-- /#content -->
+                <section id="extras" class="body">
+                                <div class="blogroll">
+                                        <h2>links</h2>
+                                        <ul>
+                                                        <li><a href="https://www.linkedin.com/in/t%C3%B9ng-thanh-tr%E1%BA%A7n-130609204/">linkedIn</a></li>
+                                                        <li><a href="https://github.com/thanhtung4work">github</a></li>
+                                        </ul>
+                                </div><!-- /.blogroll -->
+                </section><!-- /#extras -->
+
+                <footer id="contentinfo" class="body">
+                        <address id="about" class="vcard body">
+                                Proudly powered by <a rel="nofollow" href="https://getpelican.com/">Pelican</a>, which takes great advantage of <a rel="nofollow" href="https://www.python.org/">Python</a>.
+                        </address><!-- /#about -->
+
+                        <p>The theme is by <a rel="nofollow" href="https://www.smashingmagazine.com/2009/08/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
+                </footer><!-- /#contentinfo -->
+
+        </body>
+</html>

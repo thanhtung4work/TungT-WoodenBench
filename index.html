@@ -19,7 +19,189 @@
 
                 <aside id="featured" class="body">
                     <article>
-                        <h1 class="entry-title"><a href="https://thanhtung4work.github.io/TungT-WoodenBench/logistic-modelling.html">Using the Logistic Model in Project Management: Predicting Bug Growth Like a Pro</a></h1>
+                        <h1 class="entry-title"><a href="https://thanhtung4work.github.io/TungT-WoodenBench/autoocr.html">Turning Images into Searchable PDFs</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2025-12-13T11:00:00+07:00">
+                Published: Sat 13 December 2025
+        </abbr>
+
+                <address class="vcard author">
+                        By                                 <a class="url fn" href="https://thanhtung4work.github.io/TungT-WoodenBench/author/tung-thanh-tran.html">Tung Thanh Tran</a>
+                </address>
+        <p>In <a href="https://thanhtung4work.github.io/TungT-WoodenBench/category/machine-learning.html">Machine Learning</a>.</p>
+<p>tags: <a href="https://thanhtung4work.github.io/TungT-WoodenBench/tag/machine-learning.html">machine learning</a> </p>        
+</footer><!-- /.post-info --><p>If you’ve ever tried to run OCR on a poorly taken photo — tilted angles, bad lighting, too much noise — you know the pain. That’s exactly why I built <strong><a href="https://github.com/thanhtung4work/Autocrop-OCR">Autocrop-OCR</a></strong>: a lightweight, developer-friendly toolkit to preprocess images <em>before</em> sending them to an OCR engine.</p>
+<p>This post walks you through the core features and gives you a high-level look at how they work.</p>
+<h2>What Autocrop-OCR does?</h2>
+<p>Autocrop-OCR acts as the smart “prep cook” — cleaning, trimming, straightening, and optimizing your input image so OCR models can work with cleaner text regions.</p>
+<p>Key functionalities include:</p>
+<ul>
+<li><strong>Perspective Cropping</strong> - straighten skewed documents  </li>
+<li><strong>Color Quantization</strong> - simplify colors</li>
+<li><strong>Edge Detection</strong> - find text boundaries or document contours  </li>
+<li>(Plus optional cropping, thresholding, and preprocessing utilities)</li>
+</ul>
+<h2>Edge Detection</h2>
+<p>Before you can crop or isolate text, you need to know <em>where</em> the edges are.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">detect_corners</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Detects the 4 corners of the largest rectangular contour in an image.</span>
+<span class="sd">    Returns corner points ordered as: top-left, top-right, bottom-right, bottom-left.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># 1. Resize image (optional step for consistency)</span>
+    <span class="n">scale_percent</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">new_w</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">scale_percent</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="n">new_h</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">scale_percent</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="n">image_resized</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">new_w</span><span class="p">,</span> <span class="n">new_h</span><span class="p">))</span>
+
+    <span class="c1"># 2. Preprocessing: grayscale, blur, threshold</span>
+    <span class="n">gray</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">image_resized</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2GRAY</span><span class="p">)</span>
+    <span class="n">blurred</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">GaussianBlur</span><span class="p">(</span><span class="n">gray</span><span class="p">,</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">Canny</span><span class="p">(</span><span class="n">blurred</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">180</span><span class="p">)</span>
+
+    <span class="c1"># 3. Find external contours</span>
+    <span class="n">contours</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">findContours</span><span class="p">(</span>
+        <span class="n">edges</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">RETR_EXTERNAL</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">CHAIN_APPROX_SIMPLE</span>
+    <span class="p">)</span>
+    <span class="n">contours</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">contours</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">contourArea</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># 4. Detect the largest contour with 4 edges (the “page”)</span>
+    <span class="n">page_contour</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">largest_area</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="k">for</span> <span class="n">contour</span> <span class="ow">in</span> <span class="n">contours</span><span class="p">:</span>
+        <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.02</span> <span class="o">*</span> <span class="n">cv2</span><span class="o">.</span><span class="n">arcLength</span><span class="p">(</span><span class="n">contour</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">approx</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">approxPolyDP</span><span class="p">(</span><span class="n">contour</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">area</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">contourArea</span><span class="p">(</span><span class="n">contour</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">approx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">area</span> <span class="o">&gt;</span> <span class="n">largest_area</span><span class="p">:</span>
+            <span class="n">page_contour</span> <span class="o">=</span> <span class="n">approx</span>
+            <span class="n">largest_area</span> <span class="o">=</span> <span class="n">area</span>
+
+    <span class="c1"># Fallback: if no 4-sided contour found, return whole image rectangle</span>
+    <span class="k">if</span> <span class="n">page_contour</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Could not detect page corners.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">new_w</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">new_w</span><span class="p">,</span> <span class="n">new_h</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">new_h</span><span class="p">]</span>
+        <span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="c1"># 5. Extract corner points</span>
+    <span class="n">corner_pts</span> <span class="o">=</span> <span class="n">page_contour</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="c1"># 6. Sort corners clockwise using angle from center</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">corner_pts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Sort by angle relative to center (atan2 gives counterclockwise ordering)</span>
+    <span class="n">ordered</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="n">corner_pts</span><span class="p">,</span>
+        <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">pt</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Format: TL, TR, BR, BL</span>
+    <span class="n">ordered</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ordered</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">top_left</span><span class="p">,</span> <span class="n">top_right</span><span class="p">,</span> <span class="n">bottom_right</span><span class="p">,</span> <span class="n">bottom_left</span> <span class="o">=</span> <span class="n">ordered</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">top_left</span><span class="p">,</span> <span class="n">top_right</span><span class="p">,</span> <span class="n">bottom_right</span><span class="p">,</span> <span class="n">bottom_left</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+</code></pre></div>
+
+<h2>Perspective Cropping</h2>
+<p>Autocrop-OCR detects the document boundaries and applies a <strong>perspective transform</strong> so the image becomes a clean, top-down rectangle.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">perspective_crop</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Applies a perspective transform to crop a quadrilateral region from the image.</span>
+<span class="sd">    Expects `points` in the order:</span>
+<span class="sd">        top-left, top-right, bottom-right, bottom-left.</span>
+<span class="sd">    Saves the warped image and also returns it.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Ensure points are float32</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Compute output dimensions by measuring opposite sides</span>
+    <span class="n">width_top</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pts</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">width_bottom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">pts</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">height_left</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pts</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">height_right</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pts</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+    <span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">width_top</span><span class="p">,</span> <span class="n">width_bottom</span><span class="p">))</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">height_left</span><span class="p">,</span> <span class="n">height_right</span><span class="p">))</span>
+
+    <span class="c1"># Destination rectangle coordinates</span>
+    <span class="n">dst</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Compute perspective transform</span>
+    <span class="n">matrix</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">getPerspectiveTransform</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span>
+    <span class="n">warped</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">warpPerspective</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">matrix</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">warped</span>
+</code></pre></div>
+
+<h2>Color Quantization</h2>
+<p>High-resolution images often contain more colors than OCR models actually need.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">quantize_image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reduce the number of colors in the image using K-means clustering.</span>
+<span class="sd">    k = number of colors to keep.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Convert to float32 and reshape to (num_pixels, 3)</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+
+    <span class="c1"># KMeans criteria: stop after 10 iterations or accuracy &lt; 1.0</span>
+    <span class="n">criteria</span> <span class="o">=</span> <span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">TERM_CRITERIA_EPS</span> <span class="o">+</span> <span class="n">cv2</span><span class="o">.</span><span class="n">TERM_CRITERIA_MAX_ITER</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="c1"># Apply KMeans</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">centers</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">kmeans</span><span class="p">(</span>
+        <span class="n">Z</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">criteria</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">KMEANS_RANDOM_CENTERS</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Convert colors back to uint8</span>
+    <span class="n">centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">(</span><span class="n">centers</span><span class="p">)</span>
+
+    <span class="c1"># Apply clustered colors to pixels</span>
+    <span class="n">quantized</span> <span class="o">=</span> <span class="n">centers</span><span class="p">[</span><span class="n">labels</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
+    <span class="n">quantized</span> <span class="o">=</span> <span class="n">quantized</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">quantized</span>
+</code></pre></div>
+
+<h2>How It All Fits Together</h2>
+<p>A typical preprocessing flow might look like this:</p>
+<ol>
+<li>Run edge detection → find document or text boundaries  </li>
+<li>Apply perspective cropping → straighten the view  </li>
+<li>Apply color quantization → simplify and denoise  </li>
+<li>Send the cleaned output to your favorite OCR engine (Tesseract, EasyOCR, PaddleOCR, etc.)</li>
+</ol>
+<p>This pipeline transforms a messy smartphone photo into a clean, accurate input while keeping performance lightweight.</p>
+<hr>
+<h2>Try It Out</h2>
+<p>You can explore the code or clone the project here:</p>
+<p><strong>Autocrop-OCR on GitHub</strong><br>
+https://github.com/thanhtung4work/Autocrop-OCR</p>
+<p>The repo includes examples, source code, and utilities to help you integrate it directly into your project.</p>                    </article>
+                </aside><!-- /#featured -->
+                    <section id="content" class="body">
+                        <h1>Other articles</h1>
+                        <hr />
+                        <ol id="posts-list" class="hfeed">
+
+                <li><article class="hentry">
+                    <header>
+                        <h1><a href="https://thanhtung4work.github.io/TungT-WoodenBench/logistic-modelling.html" rel="bookmark"
+                               title="Permalink to Using the Logistic Model in Project Management: Predicting Bug Growth Like a Pro">Using the Logistic Model in Project Management: Predicting Bug Growth Like a Pro</a></h1>
+                    </header>
+
+                    <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2025-12-08T11:00:00+07:00">
                 Published: Mon 08 December 2025
@@ -30,106 +212,10 @@
                 </address>
         <p>In <a href="https://thanhtung4work.github.io/TungT-WoodenBench/category/machine-learning.html">Machine Learning</a>.</p>
 <p>tags: <a href="https://thanhtung4work.github.io/TungT-WoodenBench/tag/machine-learning.html">machine learning</a> </p>        
-</footer><!-- /.post-info --><p>When managing a software project, one universal truth always emerges:
-bugs grow faster than coffee consumption during crunch time.</p>
-<p>But what if we could predict this growth instead of being surprised every sprint?
-Enter the <strong>logistic model</strong> - a classic mathematical tool that helps us understand how things grow when they can’t grow forever. Yes, even bugs have limits (usually).</p>
-<h2>What Is the Logistic Model?</h2>
-<p>The logistic model is often used to describe growth that:</p>
-<ol>
-<li>Starts slowly</li>
-<li>Accelerates rapidly</li>
-<li>Then slows down as it approaches a limit</li>
-</ol>
-<p>This limit is known as the carrying capacity - the maximum value the system tends toward. In biology, it might represent the maximum size of a population. In project management, it might represent… <strong>the total number of bugs</strong> your project can produce before teammates stage a revolt.</p>
-<p>The standard logistic function:</p>
-<p>$$ f(t) = { K \over (1 + e^{ -r(t-t_0) }) } $$</p>
-<p>Where:</p>
-<ul>
-<li>K → the upper limit (total possible bugs, or growth ceiling)</li>
-<li>r → growth rate</li>
-<li>t₀ → the midpoint (time when growth is fastest)</li>
-<li>t → time (days, weeks, sprints, etc.)</li>
-</ul>
-<h2>Using Logistic Model to Predict Total Bugs</h2>
-<p>Bug discovery often follows a predictable pattern:</p>
-<ol>
-<li>Early Phase - Low bug count
-You’re still building features, not breaking them (yet).</li>
-<li>Growth Phase - Bug explosion
-New features come in fast. Bugs come in faster. It’s the golden age of QA tickets.</li>
-<li>Stabilization Phase - Leveling off
-Eventually, you fix more than you add. (We hope.)</li>
-</ol>
-<p>The logistic model captures exactly this pattern.
-By fitting a logistic curve to historical bug-count data, we can estimate:</p>
-<ul>
-<li>Total expected bugs in the project (K)</li>
-<li>When the bug count will peak (t₀)</li>
-<li>How fast bugs are accumulating (r)</li>
-</ul>
-<p>This is incredibly useful for planning, resource allocation, and figuring out when your QA team can finally take a vacation.</p>
-<h2>Example: Predicting Final Bug Count</h2>
-<p>Imagine your project’s weekly cumulative bug counts look like this:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">Week 1</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span><span class="w">  </span>
-<span class="nt">Week 2</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12</span><span class="w">  </span>
-<span class="nt">Week 3</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25</span><span class="w">  </span>
-<span class="nt">Week 4</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">47</span><span class="w">  </span>
-<span class="nt">Week 5</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span><span class="w">  </span>
-<span class="nt">Week 6</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">110</span><span class="w">  </span>
-<span class="nt">Week 7</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">130</span><span class="w">  </span>
-<span class="nt">Week 8</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">138</span><span class="w">  </span>
-<span class="nt">Week 9</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">142</span><span class="w">  </span>
-</code></pre></div>
-
-<p>Plotting these points, you’ll notice the curve starts slowing - a perfect fit for a logistic model.</p>
-<p>Fitting the model may reveal:</p>
-<ul>
-<li>K ≈ 150 bugs</li>
-<li>r ≈ 0.8</li>
-<li>t₀ ≈ Week 5</li>
-</ul>
-<p>This suggests you are nearing the “bug saturation point” - the place where new bugs arrive slower than fixes. A magical time.</p>
-<h2>How to Fit a Logistic Model (Quick Guide)</h2>
-<p>You can fit a logistic curve with tools like Python, R, or even Excel if you’re patient.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">curve_fit</span>
-
-<span class="k">def</span> <span class="nf">logistic</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">t0</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">K</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">r</span> <span class="o">*</span> <span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)))</span>
-
-<span class="c1"># Example data</span>
-<span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">])</span>
-<span class="n">bugs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mi">47</span><span class="p">,</span><span class="mi">80</span><span class="p">,</span><span class="mi">110</span><span class="p">,</span><span class="mi">130</span><span class="p">,</span><span class="mi">138</span><span class="p">,</span><span class="mi">142</span><span class="p">])</span>
-
-<span class="n">params</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">logistic</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">bugs</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="p">[</span><span class="mi">150</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
-<span class="n">K</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">t0</span> <span class="o">=</span> <span class="n">params</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Predicted total bugs (K):&quot;</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
-</code></pre></div>
-
-<p>This gives you an estimate of the total number of bugs the project will accumulate.</p>
-<h2>Logistic Model as a Growth Model in Project Management</h2>
-<p>Beyond bugs, the logistic curve is handy for predicting:</p>
-<ul>
-<li>Feature adoption (internal or external)</li>
-<li>Team size growth</li>
-<li>User growth</li>
-<li>Technical debt accumulation (sadly, also logistic-friendly)</li>
-<li>Infrastructure scaling</li>
-</ul>
-<p>It’s a great model whenever growth starts fast but must eventually slow.</p>
-<h2>Final Thoughts</h2>
-<p>Using the logistic model in project management helps you make predictions that feel less like guesswork and more like insight. Instead of anxiously watching bug numbers rise, you can model them, anticipate them, and plan accordingly.</p>
-<p>And if the predicted “maximum bug count” seems too high… remember:
-it’s not the model’s fault - it’s yours.
-(Just kidding. Probably.)</p>
-<p>There is another model which can be used like logistic model. (<em>ahem it's Gompertz</em>)</p>                    </article>
-                </aside><!-- /#featured -->
-                    <section id="content" class="body">
-                        <h1>Other articles</h1>
-                        <hr />
-                        <ol id="posts-list" class="hfeed">
+</footer><!-- /.post-info -->                        <p>Using the Logistic Model in Project Management</p>
+                        <a class="readmore" href="https://thanhtung4work.github.io/TungT-WoodenBench/logistic-modelling.html">read more</a>
+                    </div><!-- /.entry-content -->
+                </article></li>
 
                 <li><article class="hentry">
                     <header>

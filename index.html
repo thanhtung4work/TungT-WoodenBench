@@ -19,7 +19,191 @@
 
                 <aside id="featured" class="body">
                     <article>
-                        <h1 class="entry-title"><a href="https://thanhtung4work.github.io/TungT-WoodenBench/autoocr.html">Turning Images into Searchable PDFs</a></h1>
+                        <h1 class="entry-title"><a href="https://thanhtung4work.github.io/TungT-WoodenBench/diabetes-challenge.html">I Joined a Kaggle Playground Series and Failed Miserably</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2025-12-29T11:00:00+07:00">
+                Published: Mon 29 December 2025
+        </abbr>
+
+                <address class="vcard author">
+                        By                                 <a class="url fn" href="https://thanhtung4work.github.io/TungT-WoodenBench/author/tung-thanh-tran.html">Tung Thanh Tran</a>
+                </address>
+        <p>In <a href="https://thanhtung4work.github.io/TungT-WoodenBench/category/machine-learning.html">Machine Learning</a>.</p>
+<p>tags: <a href="https://thanhtung4work.github.io/TungT-WoodenBench/tag/machine-learning.html">machine learning</a> <a href="https://thanhtung4work.github.io/TungT-WoodenBench/tag/kaggle.html">kaggle</a> </p>        
+</footer><!-- /.post-info --><p>This was the <strong>first time I joined a Kaggle Playground Series challenge</strong>, even though I’ve been working as an AI Engineer for a while.</p>
+<p>The challenge was a <strong>Diabetes Prediction</strong> task with tabular data.<br>
+And let me tell you upfront: <strong>I failed miserably.</strong></p>
+<h2>The Reality Check</h2>
+<p>It had been a <em>long</em> time since I last worked seriously with tabular datasets.<br>
+So I had to relearn - or at least re-get-used-to - things like:</p>
+<ul>
+<li>Exploratory Data Analysis (EDA)</li>
+<li>Feature engineering</li>
+<li>Data preprocessing pipelines</li>
+<li>Evaluation metrics and threshold tuning</li>
+</ul>
+<p>…all over again.</p>
+<p>Model selection was another headache.<br>
+For tabular data, the usual suspects are:</p>
+<ul>
+<li>Logistic Regression</li>
+<li>Decision Trees</li>
+<li>Gradient Boosting (XGBoost / LightGBM - <em>usually the best choice</em>)</li>
+</ul>
+<p>But instead of being sensible, I went with what I was most familiar with: <strong>A neural network</strong></p>
+<p>Yes.<br>
+This also explains why my rank was so low 😅</p>
+<h2>The Model (a.k.a. My Mistake)</h2>
+<p>I used a residual MLP architecture in PyTorch.</p>
+<h3>Residual Block</h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ResidualBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">res_path</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">dim</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_path</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">out</span>
+</code></pre></div>
+
+<h3>Residual MLP</h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ResidualMLP</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">n_blocks</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">input_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="o">*</span><span class="p">[</span><span class="n">ResidualBlock</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">)]</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Was it over-engineered for tabular data?
+Absolutely.</p>
+<p>Was it fun to build?
+Also yes.</p>
+<h2>Data Processing (The Part That Actually Helped)</h2>
+<p>I did some basic but necessary preprocessing:
+- Grouped categorical columns
+- Used <code>OrdinalEncoder</code> for ordered features
+- One-hot encoded nominal features
+- Standardized numerical columns</p>
+<div class="highlight"><pre><span></span><code><span class="n">ordinal_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;education_level&quot;</span><span class="p">,</span> <span class="s2">&quot;income_level&quot;</span><span class="p">]</span>
+<span class="n">ordinal_categories</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="s2">&quot;No formal&quot;</span><span class="p">,</span> <span class="s2">&quot;Highschool&quot;</span><span class="p">,</span> <span class="s2">&quot;Graduate&quot;</span><span class="p">,</span> <span class="s2">&quot;Postgraduate&quot;</span><span class="p">],</span> 
+    <span class="p">[</span><span class="s2">&quot;Low&quot;</span><span class="p">,</span> <span class="s2">&quot;Lower-Middle&quot;</span><span class="p">,</span> <span class="s2">&quot;Middle&quot;</span><span class="p">,</span> <span class="s2">&quot;Upper-Middle&quot;</span><span class="p">,</span> <span class="s2">&quot;High&quot;</span><span class="p">]</span>
+<span class="p">]</span>
+
+<span class="n">nominal_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;gender&quot;</span><span class="p">,</span> <span class="s2">&quot;ethnicity&quot;</span><span class="p">,</span> <span class="s2">&quot;smoking_status&quot;</span><span class="p">,</span> <span class="s2">&quot;employment_status&quot;</span><span class="p">]</span>
+
+<span class="n">binary_cols</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;family_history_diabetes&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hypertension_history&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;cardiovascular_history&quot;</span>
+<span class="p">]</span>
+
+<span class="n">numerical_cols</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;age&#39;</span><span class="p">,</span> <span class="s1">&#39;alcohol_consumption_per_week&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;physical_activity_minutes_per_week&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;diet_score&#39;</span><span class="p">,</span> <span class="s1">&#39;sleep_hours_per_day&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;screen_time_hours_per_day&#39;</span><span class="p">,</span> <span class="s1">&#39;bmi&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;waist_to_hip_ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;systolic_bp&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;diastolic_bp&#39;</span><span class="p">,</span> <span class="s1">&#39;heart_rate&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;cholesterol_total&#39;</span><span class="p">,</span> <span class="s1">&#39;hdl_cholesterol&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ldl_cholesterol&#39;</span><span class="p">,</span> <span class="s1">&#39;triglycerides&#39;</span>
+<span class="p">]</span>
+
+<span class="n">preprocessor</span> <span class="o">=</span> <span class="n">ColumnTransformer</span><span class="p">(</span>
+    <span class="n">transformers</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;ordinal&quot;</span><span class="p">,</span> <span class="n">OrdinalEncoder</span><span class="p">(</span><span class="n">categories</span><span class="o">=</span><span class="n">ordinal_categories</span><span class="p">),</span> <span class="n">ordinal_cols</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;onehot&quot;</span><span class="p">,</span> <span class="n">OneHotEncoder</span><span class="p">(</span><span class="n">handle_unknown</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">),</span> <span class="n">nominal_cols</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;binary&quot;</span><span class="p">,</span> <span class="s2">&quot;passthrough&quot;</span><span class="p">,</span> <span class="n">binary_cols</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;numeric&quot;</span><span class="p">,</span> <span class="n">StandardScaler</span><span class="p">(),</span> <span class="n">numerical_cols</span><span class="p">)</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h2>Threshold Tuning (Small Win)</h2>
+<p>I also tuned the classification threshold instead of blindly using 0.5:</p>
+<div class="highlight"><pre><span></span><code><span class="nx">thresholds</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">np</span><span class="p">.</span><span class="nx">arange</span><span class="p">(</span><span class="m m-Double">0.1</span><span class="p">,</span><span class="w"> </span><span class="m m-Double">0.9</span><span class="p">,</span><span class="w"> </span><span class="m m-Double">0.1</span><span class="p">)</span>
+<span class="nx">f1_scores</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[]</span>
+
+<span class="k">for</span><span class="w"> </span><span class="nx">t</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="nx">thresholds</span><span class="p">:</span>
+<span class="w">    </span><span class="nx">preds</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">(</span><span class="nx">all_probs</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="nx">t</span><span class="p">).</span><span class="nx">astype</span><span class="p">(</span><span class="nx">int</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">f1_scores</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="nx">f1_score</span><span class="p">(</span><span class="nx">all_targets</span><span class="p">,</span><span class="w"> </span><span class="nx">preds</span><span class="p">))</span>
+
+<span class="nx">best_threshold</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">thresholds</span><span class="p">[</span><span class="nx">np</span><span class="p">.</span><span class="nx">argmax</span><span class="p">(</span><span class="nx">f1_scores</span><span class="p">)]</span>
+<span class="nx">best_f1</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">max</span><span class="p">(</span><span class="nx">f1_scores</span><span class="p">)</span>
+</code></pre></div>
+
+<p>This gave me a tiny boost — but not enough to save the model choice.</p>
+<h2>The Result (Brace Yourself)</h2>
+<p>Best F1 score: ~0.6825</p>
+<p>Leaderboard rank: 2990 / ~3800</p>
+<p>Yes.</p>
+<p>That’s barely top 80%.</p>
+<p>(Lol.)</p>
+<h2>What I Learned</h2>
+<ol>
+<li>
+<p><strong>Tabular data ≠ Neural Networks (most of the time)</strong></p>
+<p>Gradient boosting is king for a reason.</p>
+</li>
+<li>
+<p><strong>Strong baselines matter</strong></p>
+<p>A simple logistic regression would probably have beaten my model.</p>
+</li>
+<li>
+<p><strong>EDA and feature engineering matter more than architecture</strong></p>
+<p>Especially in Kaggle Playground challenges.</p>
+</li>
+<li>
+<p><strong>Failing publicly is actually useful</strong></p>
+<p>I learned more from this than from an easy win.</p>
+</li>
+</ol>
+<h2>Conclusion</h2>
+<p>Despite the terrible ranking, this was a fun and valuable learning experience.</p>
+<p>Next time:</p>
+<ul>
+<li>I’ll start with a strong baseline</li>
+<li>I’ll try LightGBM / XGBoost first</li>
+<li>And I definitely won’t jump straight into neural networks for tabular data</li>
+</ul>
+<p>…probably.</p>
+<p>If you’re also joining Kaggle for the first time:
+fail fast, learn faster, and enjoy the process.</p>                    </article>
+                </aside><!-- /#featured -->
+                    <section id="content" class="body">
+                        <h1>Other articles</h1>
+                        <hr />
+                        <ol id="posts-list" class="hfeed">
+
+                <li><article class="hentry">
+                    <header>
+                        <h1><a href="https://thanhtung4work.github.io/TungT-WoodenBench/autoocr.html" rel="bookmark"
+                               title="Permalink to Turning Images into Searchable PDFs">Turning Images into Searchable PDFs</a></h1>
+                    </header>
+
+                    <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2025-12-13T11:00:00+07:00">
                 Published: Sat 13 December 2025
@@ -30,170 +214,10 @@
                 </address>
         <p>In <a href="https://thanhtung4work.github.io/TungT-WoodenBench/category/machine-learning.html">Machine Learning</a>.</p>
 <p>tags: <a href="https://thanhtung4work.github.io/TungT-WoodenBench/tag/machine-learning.html">machine learning</a> </p>        
-</footer><!-- /.post-info --><p>If you’ve ever tried to run OCR on a poorly taken photo — tilted angles, bad lighting, too much noise — you know the pain. That’s exactly why I built <strong><a href="https://github.com/thanhtung4work/Autocrop-OCR">Autocrop-OCR</a></strong>: a lightweight, developer-friendly toolkit to preprocess images <em>before</em> sending them to an OCR engine.</p>
-<p>This post walks you through the core features and gives you a high-level look at how they work.</p>
-<h2>What Autocrop-OCR does?</h2>
-<p>Autocrop-OCR acts as the smart “prep cook” — cleaning, trimming, straightening, and optimizing your input image so OCR models can work with cleaner text regions.</p>
-<p>Key functionalities include:</p>
-<ul>
-<li><strong>Perspective Cropping</strong> - straighten skewed documents  </li>
-<li><strong>Color Quantization</strong> - simplify colors</li>
-<li><strong>Edge Detection</strong> - find text boundaries or document contours  </li>
-<li>(Plus optional cropping, thresholding, and preprocessing utilities)</li>
-</ul>
-<h2>Edge Detection</h2>
-<p>Before you can crop or isolate text, you need to know <em>where</em> the edges are.</p>
-<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">detect_corners</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Detects the 4 corners of the largest rectangular contour in an image.</span>
-<span class="sd">    Returns corner points ordered as: top-left, top-right, bottom-right, bottom-left.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># 1. Resize image (optional step for consistency)</span>
-    <span class="n">scale_percent</span> <span class="o">=</span> <span class="mi">100</span>
-    <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
-    <span class="n">new_w</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">scale_percent</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span>
-    <span class="n">new_h</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">scale_percent</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span>
-    <span class="n">image_resized</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">new_w</span><span class="p">,</span> <span class="n">new_h</span><span class="p">))</span>
-
-    <span class="c1"># 2. Preprocessing: grayscale, blur, threshold</span>
-    <span class="n">gray</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">image_resized</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2GRAY</span><span class="p">)</span>
-    <span class="n">blurred</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">GaussianBlur</span><span class="p">(</span><span class="n">gray</span><span class="p">,</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="n">edges</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">Canny</span><span class="p">(</span><span class="n">blurred</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">180</span><span class="p">)</span>
-
-    <span class="c1"># 3. Find external contours</span>
-    <span class="n">contours</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">findContours</span><span class="p">(</span>
-        <span class="n">edges</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">RETR_EXTERNAL</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">CHAIN_APPROX_SIMPLE</span>
-    <span class="p">)</span>
-    <span class="n">contours</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">contours</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">contourArea</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="c1"># 4. Detect the largest contour with 4 edges (the “page”)</span>
-    <span class="n">page_contour</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">largest_area</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
-    <span class="k">for</span> <span class="n">contour</span> <span class="ow">in</span> <span class="n">contours</span><span class="p">:</span>
-        <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.02</span> <span class="o">*</span> <span class="n">cv2</span><span class="o">.</span><span class="n">arcLength</span><span class="p">(</span><span class="n">contour</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="n">approx</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">approxPolyDP</span><span class="p">(</span><span class="n">contour</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="n">area</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">contourArea</span><span class="p">(</span><span class="n">contour</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">approx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">area</span> <span class="o">&gt;</span> <span class="n">largest_area</span><span class="p">:</span>
-            <span class="n">page_contour</span> <span class="o">=</span> <span class="n">approx</span>
-            <span class="n">largest_area</span> <span class="o">=</span> <span class="n">area</span>
-
-    <span class="c1"># Fallback: if no 4-sided contour found, return whole image rectangle</span>
-    <span class="k">if</span> <span class="n">page_contour</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Could not detect page corners.&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-            <span class="p">[</span><span class="n">new_w</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-            <span class="p">[</span><span class="n">new_w</span><span class="p">,</span> <span class="n">new_h</span><span class="p">],</span>
-            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">new_h</span><span class="p">]</span>
-        <span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-
-    <span class="c1"># 5. Extract corner points</span>
-    <span class="n">corner_pts</span> <span class="o">=</span> <span class="n">page_contour</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-
-    <span class="c1"># 6. Sort corners clockwise using angle from center</span>
-    <span class="n">center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">corner_pts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-    <span class="c1"># Sort by angle relative to center (atan2 gives counterclockwise ordering)</span>
-    <span class="n">ordered</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
-        <span class="n">corner_pts</span><span class="p">,</span>
-        <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">pt</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="p">)</span>
-
-    <span class="c1"># Format: TL, TR, BR, BL</span>
-    <span class="n">ordered</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ordered</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-
-    <span class="n">top_left</span><span class="p">,</span> <span class="n">top_right</span><span class="p">,</span> <span class="n">bottom_right</span><span class="p">,</span> <span class="n">bottom_left</span> <span class="o">=</span> <span class="n">ordered</span>
-
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">top_left</span><span class="p">,</span> <span class="n">top_right</span><span class="p">,</span> <span class="n">bottom_right</span><span class="p">,</span> <span class="n">bottom_left</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-</code></pre></div>
-
-<h2>Perspective Cropping</h2>
-<p>Autocrop-OCR detects the document boundaries and applies a <strong>perspective transform</strong> so the image becomes a clean, top-down rectangle.</p>
-<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">perspective_crop</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Applies a perspective transform to crop a quadrilateral region from the image.</span>
-<span class="sd">    Expects `points` in the order:</span>
-<span class="sd">        top-left, top-right, bottom-right, bottom-left.</span>
-<span class="sd">    Saves the warped image and also returns it.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># Ensure points are float32</span>
-    <span class="n">pts</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
-
-    <span class="c1"># Compute output dimensions by measuring opposite sides</span>
-    <span class="n">width_top</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pts</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-    <span class="n">width_bottom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">pts</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-    <span class="n">height_left</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pts</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
-    <span class="n">height_right</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pts</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-
-    <span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">width_top</span><span class="p">,</span> <span class="n">width_bottom</span><span class="p">))</span>
-    <span class="n">height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">height_left</span><span class="p">,</span> <span class="n">height_right</span><span class="p">))</span>
-
-    <span class="c1"># Destination rectangle coordinates</span>
-    <span class="n">dst</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-        <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-        <span class="p">[</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-        <span class="p">[</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-    <span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
-
-    <span class="c1"># Compute perspective transform</span>
-    <span class="n">matrix</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">getPerspectiveTransform</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span>
-    <span class="n">warped</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">warpPerspective</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">matrix</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
-
-    <span class="k">return</span> <span class="n">warped</span>
-</code></pre></div>
-
-<h2>Color Quantization</h2>
-<p>High-resolution images often contain more colors than OCR models actually need.</p>
-<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">quantize_image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Reduce the number of colors in the image using K-means clustering.</span>
-<span class="sd">    k = number of colors to keep.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Convert to float32 and reshape to (num_pixels, 3)</span>
-    <span class="n">Z</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-    <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
-
-    <span class="c1"># KMeans criteria: stop after 10 iterations or accuracy &lt; 1.0</span>
-    <span class="n">criteria</span> <span class="o">=</span> <span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">TERM_CRITERIA_EPS</span> <span class="o">+</span> <span class="n">cv2</span><span class="o">.</span><span class="n">TERM_CRITERIA_MAX_ITER</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
-
-    <span class="c1"># Apply KMeans</span>
-    <span class="n">_</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">centers</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">kmeans</span><span class="p">(</span>
-        <span class="n">Z</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">criteria</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">KMEANS_RANDOM_CENTERS</span>
-    <span class="p">)</span>
-
-    <span class="c1"># Convert colors back to uint8</span>
-    <span class="n">centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">(</span><span class="n">centers</span><span class="p">)</span>
-
-    <span class="c1"># Apply clustered colors to pixels</span>
-    <span class="n">quantized</span> <span class="o">=</span> <span class="n">centers</span><span class="p">[</span><span class="n">labels</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
-    <span class="n">quantized</span> <span class="o">=</span> <span class="n">quantized</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">quantized</span>
-</code></pre></div>
-
-<h2>How It All Fits Together</h2>
-<p>A typical preprocessing flow might look like this:</p>
-<ol>
-<li>Run edge detection → find document or text boundaries  </li>
-<li>Apply perspective cropping → straighten the view  </li>
-<li>Apply color quantization → simplify and denoise  </li>
-<li>Send the cleaned output to your favorite OCR engine (Tesseract, EasyOCR, PaddleOCR, etc.)</li>
-</ol>
-<p>This pipeline transforms a messy smartphone photo into a clean, accurate input while keeping performance lightweight.</p>
-<hr>
-<h2>Try It Out</h2>
-<p>You can explore the code or clone the project here:</p>
-<p><strong>Autocrop-OCR on GitHub</strong><br>
-https://github.com/thanhtung4work/Autocrop-OCR</p>
-<p>The repo includes examples, source code, and utilities to help you integrate it directly into your project.</p>                    </article>
-                </aside><!-- /#featured -->
-                    <section id="content" class="body">
-                        <h1>Other articles</h1>
-                        <hr />
-                        <ol id="posts-list" class="hfeed">
+</footer><!-- /.post-info -->                        <p>How to turn images into searchable, extractable PDF files</p>
+                        <a class="readmore" href="https://thanhtung4work.github.io/TungT-WoodenBench/autoocr.html">read more</a>
+                    </div><!-- /.entry-content -->
+                </article></li>
 
                 <li><article class="hentry">
                     <header>
